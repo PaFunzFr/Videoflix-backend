@@ -1,36 +1,44 @@
-# This file is used to specify files and directories that should be ignored by Docker when building images.
-# It is similar to .gitignore but specific to Docker.
+# OS / IDE / VCS
+.DS_Store
+.git/
+.idea/
+.vscode/
+.sass-cache
+.cache
+.vagrant/
+
+# Python
 *.pyc
 *.pyo
 *.mo
-*.db
-*.css.map
 *.egg-info
-*.sql.gz
-.cache
-.project
-.idea
-.pydevproject
-.idea/workspace.xml
-.DS_Store
-.git/
-.sass-cache
-.vagrant/
-__pycache__
-dist
-docs
-env
-venv
-venv/
+__pycache__/
+db.sqlite3
+
+# Django
+.env
 .env/
+venv/
 .venv/
 env/
-logs
-src/{{ project_name }}/settings/local.py
-src/node_modules
-web/media
-web/static/CACHE
-stats
+logs/
+media/
+static/
+
+# Frontend / Node
+node_modules/
+*.log
+*.css.map
+build/
+
+# Django project-specific
+core/settings/local.py
+
+# Docs / Dist
+dist/
+docs/
+stats/
+
+# Docker
 Dockerfile
-.env
-db.sqlite3
+docker-compose.override.yml

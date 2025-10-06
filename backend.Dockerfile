@@ -1,19 +1,23 @@
 # what to install
-FROM python:3
+FROM python:3.12-alpine3.21
 
-# install FFmpeg
-RUN apt-get update && apt-get install -y ffmpeg
+LABEL maintainer=""
+LABEL version="1.0"
+LABEL description="Python 3.12 (Linux) Alpine 3.21"
 
-# install folder of image
+# install image-folder
 WORKDIR /usr/src/app
 
-COPY requirements.txt ./
+COPY . .
 
-RUN /usr/local/bin/python -m pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
-RUN python -c "import whisper; whisper.load_model('tiny')"
+# install dependencies
+RUN apk add --no-cache bash postgresql-client ffmpeg \
+    && apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev python3-dev \
+    && pip install --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt \
+    && apk del .build-deps \
+    && chmod +x backend.entrypoint.sh
 
-# copy all
-COPY . . 
+EXPOSE 8000
 
-CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"] 
+ENTRYPOINT [ "./backend.entrypoint.sh" ]
