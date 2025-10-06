@@ -6,7 +6,7 @@ LABEL version="1.0"
 LABEL description="Python 3.12 (Linux) Alpine 3.21"
 
 # install image-folder
-WORKDIR /usr/src/app
+WORKDIR /app
 
 COPY . .
 
@@ -20,4 +20,5 @@ RUN apk add --no-cache bash postgresql-client ffmpeg \
 
 EXPOSE 8000
 
-ENTRYPOINT [ "./backend.entrypoint.sh" ]
+# add "sh" to run on macos
+ENTRYPOINT [ "sh", "./backend.entrypoint.sh" ] 

@@ -34,3 +34,9 @@ services:
     depends_on:
       - db
       - redis
+
+volumes:
+  videoflix_media:
+  videoflix_static:
+  postgres_data:
+  redis_data:
