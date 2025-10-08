@@ -1,4 +1,5 @@
 import os
+import django_rq
 from .tasks import convert_video_480p
 from .models import Video
 from django.dispatch import receiver
@@ -10,7 +11,10 @@ def video_post_save(sender, instance, created, **kwargs):
     print('Video saved') # always executed
     if created:
         print('New video created')
-        convert_video_480p(instance.video_file.path)
+        # set up queue process
+        queue = django_rq.get_queue('default', autocommit=True)
+        queue.enqueue(convert_video_480p, instance.video_file.path)
+        # convert_video_480p(instance.video_file.path)
 
 @receiver(post_delete, sender=Video)
 def auto_delete_file_on_delete(sender, instance, **kwargs):

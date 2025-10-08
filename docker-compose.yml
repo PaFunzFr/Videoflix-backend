@@ -16,7 +16,7 @@ services:
     volumes:
       - redis_data:/data
 
-  web:
+  web: # backend
     build:
       context: .
       dockerfile: backend.Dockerfile
@@ -34,6 +34,19 @@ services:
     depends_on:
       - db
       - redis
+
+  worker:
+    build:
+      context: .
+      dockerfile: backend.Dockerfile
+    container_name: django_worker
+    command: python manage.py rqworker default
+    volumes:
+      - .:/app
+    env_file: .env
+    depends_on:
+      - redis
+    restart: always
 
 volumes:
   videoflix_media:
