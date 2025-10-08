@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     #'rest_framework_simplejwt',
     'django_rq',
     'app_auth',
-    'app_videos'
+    'app_videos',
+    'content.apps.ContentConfig'
 ]
 
 MIDDLEWARE = [
