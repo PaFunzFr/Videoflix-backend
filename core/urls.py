@@ -24,7 +24,3 @@ urlpatterns = [
     path('django-rq/', include('django_rq.urls'))
     + static(settings.MEDIA_URL, dorcument_root = settings.MEDIA_ROOT)
 ]
-
-urlpatterns += [
-
-]
