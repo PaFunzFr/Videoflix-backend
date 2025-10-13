@@ -7,14 +7,14 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth import get_user_model
-from utils import send_activation_email, send_welcome_email
+from .utils import send_activation_email, send_welcome_email
 
 from dotenv import load_dotenv
 load_dotenv()
 
 User = get_user_model()
 
-from serializers import RegisterSerializer
+from .serializers import RegisterSerializer
 
 class RegisterView(APIView):
     def post(self, request):

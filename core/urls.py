@@ -19,8 +19,13 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from app_auth.api.views import RegisterView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('django-rq/', include('django_rq.urls'))
-    + static(settings.MEDIA_URL, dorcument_root = settings.MEDIA_ROOT)
+    path('django-rq/', include('django_rq.urls')),
+
+    path('api/register/', RegisterView.as_view(), name="register"),
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)

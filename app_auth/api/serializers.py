@@ -14,11 +14,12 @@ class RegisterSerializer(serializers.ModelSerializer):
             'email': {'required': True}
         }
 
-    def validate_password(self, value):
-        confirmed_password = self.validated_data.get('confirmed_password')
-        if value != confirmed_password:
+    def validate(self, attrs):
+        password = attrs.get('password')
+        confirmed_password = attrs.get('confirmed_password')
+        if password != confirmed_password:
             raise serializers.ValidationError("Passwords do not match.")
-        return value
+        return attrs
     
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
