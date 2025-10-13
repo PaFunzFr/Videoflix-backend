@@ -19,7 +19,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-from app_auth.api.views import RegisterView, ActivateView
+from app_auth.api.views import RegisterView, ActivateView, RequestPasswordResetView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,6 +27,7 @@ urlpatterns = [
 
     path('api/register/', RegisterView.as_view(), name="register"),
     path('api/activate/<uidb64>/<token>/', ActivateView.as_view(), name="activate"),
+    path('api/password_reset/', RequestPasswordResetView.as_view(), name="reset")
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)

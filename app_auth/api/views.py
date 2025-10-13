@@ -7,14 +7,14 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth import get_user_model
-from .utils import send_activation_email, send_welcome_email
+from .utils import send_activation_email, send_welcome_email, send_password_reset_email
 
 from dotenv import load_dotenv
 load_dotenv()
 
 User = get_user_model()
 
-from .serializers import RegisterSerializer
+from .serializers import RegisterSerializer, RequestPasswordResetSerializer
 
 class RegisterView(APIView):
     def post(self, request):
@@ -68,5 +68,32 @@ class ActivateView(APIView):
             {"message": "Account successfully activated."},
             status=status.HTTP_200_OK
         )
+
+class RequestPasswordResetView(APIView):
+    def post(self, request):
+        serializer = RequestPasswordResetSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            users = User.objects.filter(email=email, is_active=True) # only registered and active users
+
+            # security check, no response weather user exists or not
+            for user in users:
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                token = default_token_generator.make_token(user)
+                frontend_url = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5500')
+                password_reset_link = f"{frontend_url}/password_confirm/{uid}/{token}/"
+
+                django_rq.get_queue('default').enqueue(
+                    send_password_reset_email,
+                    user,
+                    password_reset_link
+                )
+
+            return Response(
+                {"detail": "If this email exists, a password reset link has been sent."},
+                status=status.HTTP_200_OK
+            )
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

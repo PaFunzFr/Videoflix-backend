@@ -35,3 +35,11 @@ class RegisterSerializer(serializers.ModelSerializer):
             is_active=False
         )
         return user
+
+
+class RequestPasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    # no response, if user exists
+    def validate_email(self, value):
+        return value
