@@ -26,7 +26,7 @@ urlpatterns = [
     # shared API-Base
     path('api/', include([
         path('', include('app_auth.api.urls')),
-        path('', include('app_videos.api.urls')),
+        #path('', include('app_videos.api.urls')),
     ])),
 ]
 

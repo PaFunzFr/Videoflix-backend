@@ -8,7 +8,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth import get_user_model
-from .utils import send_activation_email, send_welcome_email, send_password_reset_email
+from .utils import send_user_email, send_welcome_email
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -30,7 +30,14 @@ class RegisterView(APIView):
             frontend_url = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5500')
             activation_link = f"{frontend_url}/api/activate/{uid}/{token}/"
 
-            django_rq.get_queue('default').enqueue(send_activation_email, user, activation_link)
+            django_rq.get_queue('default').enqueue(
+                send_user_email,
+                user,
+                subject="Confirm your account",
+                template_name="confirm_account",
+                link_name="activation_link",
+                link_value=activation_link
+            )
 
             return Response(
                 {"user": {"id": user.pk, "email": user.email}, "token": token},
@@ -91,9 +98,12 @@ class RequestPasswordResetView(APIView):
                 password_reset_link = f"{frontend_url}/password_confirm/{uid}/{token}/"
 
                 django_rq.get_queue('default').enqueue(
-                    send_password_reset_email,
+                    send_user_email,
                     user,
-                    password_reset_link
+                    subject="Reset your password",
+                    template_name="reset_password",
+                    link_name="password_reset_link",
+                    link_value=password_reset_link
                 )
 
             return Response(

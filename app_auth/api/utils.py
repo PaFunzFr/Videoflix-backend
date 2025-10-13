@@ -17,49 +17,21 @@ def attach_logo(msg):
         msg.attach(img)
 
 
-def send_activation_email(user, activation_link):
+def send_user_email(user, subject, template_name, link_name, link_value):
     from_email = os.getenv("DEFAULT_FROM_EMAIL")
     site_url = os.getenv("FRONTEND_URL", "http://localhost:8000")
 
     context = {
         'user': user,
-        'activation_link': activation_link,
+        link_name: link_value,
         'site_url': site_url,
         'logo_cid': 'logo_cid',
     }
-    text_content = render_to_string(
-        'confirm_account.txt', context)
-    html_content = render_to_string(
-        'confirm_account.html', context)
+    text_content = render_to_string(f"{template_name}.txt", context)
+    html_content = render_to_string(f"{template_name}.html", context)
     
     msg = EmailMultiAlternatives(
-        "Confirm your account",
-        text_content,
-        from_email,
-        [user.email],
-    )
-    msg.attach_alternative(html_content, "text/html")
-    attach_logo(msg)
-    msg.send(fail_silently=False)
-
-
-def send_password_reset_email(user, password_reset_link):
-    from_email = os.getenv("DEFAULT_FROM_EMAIL")
-    site_url = os.getenv("FRONTEND_URL", "http://localhost:8000")
-
-    context = {
-        'user': user,
-        'password_reset_link': password_reset_link,
-        'site_url': site_url,
-        'logo_cid': 'logo_cid',
-    }
-    text_content = render_to_string(
-        'reset_password.txt', context)
-    html_content = render_to_string(
-        'reset_password.html', context)
-    
-    msg = EmailMultiAlternatives(
-        "Reset your password",
+        subject,
         text_content,
         from_email,
         [user.email],
