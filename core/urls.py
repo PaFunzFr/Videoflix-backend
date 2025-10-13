@@ -19,17 +19,15 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-from app_auth.api.views import RegisterView, ActivateView, RequestPasswordResetView, ConfirmPasswordView
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('django-rq/', include('django_rq.urls')),
 
-    path('api/register/', RegisterView.as_view(), name="register"),
-    path('api/activate/<uidb64>/<token>/', ActivateView.as_view(), name="activate"),
-
-    path('api/password_reset/', RequestPasswordResetView.as_view(), name="reset"),
-    path('api/password_confirm/<uidb64>/<token>/', ConfirmPasswordView.as_view(), name="confirm-password"),
+    # shared API-Base
+    path('api/', include([
+        path('', include('app_auth.api.urls')),
+        path('', include('app_videos.api.urls')),
+    ])),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
