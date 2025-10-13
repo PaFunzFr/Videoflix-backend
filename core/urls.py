@@ -19,13 +19,14 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-from app_auth.api.views import RegisterView
+from app_auth.api.views import RegisterView, ActivateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('django-rq/', include('django_rq.urls')),
 
     path('api/register/', RegisterView.as_view(), name="register"),
+    path('api/activate/<uidb64>/<token>/', ActivateView.as_view(), name="activate"),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)

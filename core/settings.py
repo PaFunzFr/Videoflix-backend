@@ -32,6 +32,10 @@ DEBUG = os.getenv("DEBUG")
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", default="localhost").split(",") #split creates list
 CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", default="http://localhost:4200").split(",")
 
+
+RQ_SHOW_ADMIN_LINK = True
+
+
 # Application definition
 
 INSTALLED_APPS = [
