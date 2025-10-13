@@ -43,3 +43,13 @@ class RequestPasswordResetSerializer(serializers.Serializer):
     # no response, if user exists
     def validate_email(self, value):
         return value
+
+
+class ConfirmPasswordSerializer(serializers.Serializer):
+    new_password = serializers.CharField()
+    confirm_password = serializers.CharField()
+
+    def validate(self, attrs):
+        if attrs.get('new_password') != attrs.get('confirm_password'):
+            raise serializers.ValidationError("Passwords do not match")
+        return attrs
