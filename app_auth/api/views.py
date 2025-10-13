@@ -1,21 +1,25 @@
 import os
 import django_rq
+from rest_framework import exceptions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth import get_user_model
 from .utils import send_user_email, send_welcome_email
 
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 from dotenv import load_dotenv
 load_dotenv()
 
 User = get_user_model()
 
-from .serializers import RegisterSerializer, RequestPasswordResetSerializer, ConfirmPasswordSerializer
+from .serializers import RegisterSerializer, RequestPasswordResetSerializer, ConfirmPasswordSerializer, LoginSerializer
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -81,6 +85,7 @@ class ActivateView(APIView):
             status=status.HTTP_200_OK
         )
 
+
 class RequestPasswordResetView(APIView):
     permission_classes = [AllowAny]
 
@@ -138,3 +143,116 @@ class ConfirmPasswordView(APIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CookieJWTAuthentication(JWTAuthentication):
+    def authenticate(self, request):
+        access_token = request.COOKIES.get("access_token")
+        if not access_token:
+            return None  # no Token => not authenticated
+        try:
+            validated_token = self.get_validated_token(access_token)
+            return self.get_user(validated_token), validated_token
+        except Exception:
+            raise exceptions.AuthenticationFailed("Invalid token")
+
+
+class LoginView(TokenObtainPairView):
+    serializer_class = LoginSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # get user information after validation
+        user = serializer.user
+
+        # get both tokens
+        refresh = serializer.validated_data["refresh"] # get refresh token
+        access = serializer.validated_data["access"] # get access token
+
+        response = Response(
+            {
+            "detail":"Login successfully!",
+            "user": {
+                    "id": user.pk,
+                    "username": user.username,
+                    "email": user.email
+                }
+            }
+        )
+
+        response.set_cookie(
+            key = "access_token",
+            value = str(access),
+            httponly = True,
+            secure = True,
+            samesite = "Lax"
+        )
+
+        response.set_cookie(
+            key = "refresh_token",
+            value = str(refresh),
+            httponly = True,
+            secure = True,
+            samesite = "Lax"
+        )
+
+        return response
+
+
+class CookieTokenRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.COOKIES.get("refresh_token")
+
+        if refresh_token is None:
+            return Response(
+                {"detail":"Refresh Token not found."}, status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        serializer = self.get_serializer(
+            data = {"refresh": refresh_token}
+        )
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except:
+            return Response(
+                {"detail":"Refresh Token invalid"}, status=status.HTTP_401_UNAUTHORIZED,
+            )
+        
+        access_token = serializer.validated_data.get("access")
+
+        response = Response(
+            {
+                "detail":"Token refreshed",
+                "access": access_token
+            }
+        )
+
+        response.set_cookie(
+            key = "access_token",
+            value = access_token,
+            httponly = True,
+            secure = True,
+            samesite = "Lax"
+        )
+
+        return response
+
+
+class LogoutView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        response = Response(
+            {"detail": "Log-Out successfully! All Tokens will be deleted. Refresh token is now invalid."},
+            status=status.HTTP_200_OK
+        )
+        
+        response.delete_cookie('access_token')
+        response.delete_cookie('refresh_token')
+
+        return response
