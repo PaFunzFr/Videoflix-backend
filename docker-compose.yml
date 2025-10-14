@@ -25,7 +25,7 @@ services:
 
     volumes:
       - .:/app
-      - videoflix_media:/app/media
+      - ./media:/app/media
       - videoflix_static:/app/static
     ports:
       - "8000:8000"
@@ -35,7 +35,7 @@ services:
       - db
       - redis
 
-  worker:
+  worker: # RQ Worker
     build:
       context: .
       dockerfile: backend.Dockerfile
@@ -43,14 +43,13 @@ services:
     command: python manage.py rqworker default
     volumes:
       - .:/app
-      - videoflix_media:/app/media 
+      - ./media:/app/media
     env_file: .env
     depends_on:
       - redis
     restart: always
 
 volumes:
-  videoflix_media:
   videoflix_static:
   postgres_data:
   redis_data:
