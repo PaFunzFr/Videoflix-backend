@@ -1,4 +1,6 @@
-import os
+import shutil
+from pathlib import Path
+from django.conf import settings
 import django_rq
 from .tasks import convert_video_to_hls, create_master_playlist
 from .models import Video
@@ -27,10 +29,13 @@ def video_post_save(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=Video)
 def auto_delete_file_on_delete(sender, instance, **kwargs):
-    if instance.video_file:
-        if os.path.isfile(instance.video_file.path):
-            os.remove(instance.video_file.path)
+
+    video_dir = Path(settings.MEDIA_ROOT) / f"video/{instance.pk}"
+    if video_dir.exists() and video_dir.is_dir():
+        # shell utilities -> remove tree (=> delete folder video/<video.pk>)
+        shutil.rmtree(video_dir)
 
     if instance.thumbnail:
-        if os.path.isfile(instance.thumbnail.path):
-            os.remove(instance.thumbnail.path)
+        path = Path(instance.thumbnail.path)
+        if path.exists():
+            path.unlink()
