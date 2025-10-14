@@ -22,7 +22,7 @@ def video_post_save(sender, instance, created, **kwargs):
         queue.enqueue(convert_video_to_hls, instance.id, *VIDEO_FORMATS[1])  # 720p
         queue.enqueue(convert_video_to_hls, instance.id, *VIDEO_FORMATS[2])  # 1080p
 
-        queue.enqueue(create_master_playlist, instance.id)
+        queue.enqueue(create_master_playlist, instance.id, instance.thumbnail.path)
 
 
 @receiver(post_delete, sender=Video)
@@ -30,7 +30,7 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
     if instance.video_file:
         if os.path.isfile(instance.video_file.path):
             os.remove(instance.video_file.path)
-            
+
     if instance.thumbnail:
         if os.path.isfile(instance.thumbnail.path):
             os.remove(instance.thumbnail.path)
