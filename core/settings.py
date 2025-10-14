@@ -37,6 +37,23 @@ CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", default="http://lo
 RQ_SHOW_ADMIN_LINK = True
 
 
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:4200',
+    'http://127.0.0.1:4200',
+    'http://127.0.0.1:5500',
+    'http://127.0.0.1:5501',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:4200',
+    'http://127.0.0.1:4200',
+    'http://127.0.0.1:5500',
+    'http://127.0.0.1:5501',
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+
 # Application definition
 
 INSTALLED_APPS = [

@@ -188,7 +188,7 @@ class LoginView(TokenObtainPairView):
             value = str(access),
             httponly = True,
             secure = True,
-            samesite = "Lax"
+            samesite = "None" # "Lax/None" -> localhost could be an issue
         )
 
         response.set_cookie(
@@ -196,7 +196,7 @@ class LoginView(TokenObtainPairView):
             value = str(refresh),
             httponly = True,
             secure = True,
-            samesite = "Lax"
+            samesite = "None" # "Lax/None" -> localhost could be an issue
         )
 
         return response
@@ -236,7 +236,7 @@ class CookieTokenRefreshView(TokenRefreshView):
             value = access_token,
             httponly = True,
             secure = True,
-            samesite = "Lax"
+            samesite = "None" # "Lax/None" -> localhost could be an issue
         )
 
         return response
