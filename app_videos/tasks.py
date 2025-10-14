@@ -45,7 +45,7 @@ def convert_video_to_hls(video_id, name, scale, v_bitrate, a_bitrate):
     video = Video.objects.get(pk=video_id)
     video_path = video.video_file.path
 
-    output_dir = Path(f"media/videos/{video_id}/{name}")
+    output_dir = Path(f"media/video/{video_id}/{name}")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     playlist = output_dir / "index.m3u8"
@@ -68,8 +68,8 @@ def convert_video_to_hls(video_id, name, scale, v_bitrate, a_bitrate):
     subprocess.run(cmd, capture_output=True, check=True)
 
 
-def create_master_playlist(video_id, thumb_path):
-    video_dir = Path(f"media/videos/{video_id}")
+def create_master_playlist(video_id):
+    video_dir = Path(f"media/video/{video_id}")
     master_path = video_dir / "master.m3u8"
 
     # Needed for format

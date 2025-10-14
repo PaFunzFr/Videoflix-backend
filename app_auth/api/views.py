@@ -21,6 +21,18 @@ User = get_user_model()
 
 from .serializers import RegisterSerializer, RequestPasswordResetSerializer, ConfirmPasswordSerializer, LoginSerializer
 
+class CookieJWTAuthentication(JWTAuthentication):
+    def authenticate(self, request):
+        access_token = request.COOKIES.get("access_token")
+        if not access_token:
+            return None  # no Token => not authenticated
+        try:
+            validated_token = self.get_validated_token(access_token)
+            return self.get_user(validated_token), validated_token
+        except Exception:
+            raise exceptions.AuthenticationFailed("Invalid token")
+
+
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
@@ -143,19 +155,6 @@ class ConfirmPasswordView(APIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class CookieJWTAuthentication(JWTAuthentication):
-    def authenticate(self, request):
-        access_token = request.COOKIES.get("access_token")
-        if not access_token:
-            return None  # no Token => not authenticated
-        try:
-            validated_token = self.get_validated_token(access_token)
-            return self.get_user(validated_token), validated_token
-        except Exception:
-            raise exceptions.AuthenticationFailed("Invalid token")
-
 
 class LoginView(TokenObtainPairView):
     serializer_class = LoginSerializer

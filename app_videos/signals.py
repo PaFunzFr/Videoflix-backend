@@ -22,7 +22,7 @@ def video_post_save(sender, instance, created, **kwargs):
         queue.enqueue(convert_video_to_hls, instance.id, *VIDEO_FORMATS[1])  # 720p
         queue.enqueue(convert_video_to_hls, instance.id, *VIDEO_FORMATS[2])  # 1080p
 
-        queue.enqueue(create_master_playlist, instance.id, instance.thumbnail.path)
+        queue.enqueue(create_master_playlist, instance.id)
 
 
 @receiver(post_delete, sender=Video)
