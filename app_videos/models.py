@@ -33,4 +33,4 @@ class Video(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.title} | {self.description or 'Video Description'} | {self.category} | Uploaded: {self.created_at:%Y-%m-%d %H:%M}"
+        return f"{self.pk} | {self.title} | {self.description or 'Video Description'} | {self.category} | Uploaded: {self.created_at:%Y-%m-%d %H:%M}"

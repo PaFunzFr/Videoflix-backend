@@ -92,6 +92,7 @@ def auth_client_with_refresh(api_client, token_pair):
     api_client.cookies["refresh_token"] = token_pair["refresh"]
     return api_client
 
+
 @pytest.fixture
 def mock_rq_enqueue():
     called = {}

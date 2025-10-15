@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def attach_logo(msg):
-    image_path = os.path.join(settings.BASE_DIR, 'app_auth', 'static', 'app_auth', 'logo_icon.png')
+    image_path = os.path.join(settings.BASE_DIR, 'app_auth', 'logo', 'app_auth', 'logo_icon.png')
     with open(image_path, 'rb') as file:
         img = MIMEImage(file.read())
         img.add_header('Content-ID', '<logo_cid>')
