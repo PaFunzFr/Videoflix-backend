@@ -44,7 +44,7 @@ class RegisterView(APIView):
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
             frontend_url = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5500')
-            activation_link = f"{frontend_url}/api/activate/{uid}/{token}/"
+            activation_link = f"{frontend_url}/pages/auth/activate.html?uid={uid}&token={token}"
 
             django_rq.get_queue('default').enqueue(
                 send_user_email,
@@ -112,7 +112,7 @@ class RequestPasswordResetView(APIView):
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
                 token = default_token_generator.make_token(user)
                 frontend_url = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5500')
-                password_reset_link = f"{frontend_url}/password_confirm/{uid}/{token}/"
+                password_reset_link = f"{frontend_url}/pages/auth/confirm_password.html?uid={uid}&token={token}"
 
                 django_rq.get_queue('default').enqueue(
                     send_user_email,

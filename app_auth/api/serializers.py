@@ -71,17 +71,19 @@ class LoginSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         email = attrs.get("email")
         password = attrs.get("password")
+        error_respone = "If registered, please confirm your email address before logging in. "\
+                        "If you haven't signed up yet, please register first."
 
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            raise serializers.ValidationError("Invalid email or password1")
+            raise serializers.ValidationError(error_respone)
 
         if not user.is_active:
-            raise serializers.ValidationError("Invalid email or password2")
+            raise serializers.ValidationError(error_respone)
         
         if not user.check_password(password):
-            raise serializers.ValidationError("Invalid email or password3")
+            raise serializers.ValidationError(error_respone)
         
         data = super().validate({"username": user.username, "password": password})
         return data
