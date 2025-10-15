@@ -49,6 +49,20 @@ services:
       - redis
     restart: always
 
+  test:
+    build:       
+      context: .
+      dockerfile: backend.Dockerfile
+    entrypoint: "" #do not run entrypoint.sh
+    command: pytest --cov=. --cov-report=term-missing
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+    env_file: .env
+
 volumes:
   videoflix_static:
   postgres_data:

@@ -1,0 +1,13 @@
+[run]
+# files that should be ignored for pytest
+omit =
+    */__init__.py
+    */migrations/*
+    */apps.py
+    */admin.py
+    */urls.py
+    */tests.py
+    core/settings.py
+    core/asgi.py
+    core/wsgi.py
+    manage.py
