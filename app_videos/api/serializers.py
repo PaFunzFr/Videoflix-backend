@@ -10,10 +10,9 @@ class VideoListSerializer(serializers.ModelSerializer):
 
     def get_thumbnail_url(self, obj):
         request = self.context.get('request')
+        
         if obj.thumbnail and hasattr(obj.thumbnail, 'url'):
-            # Wenn Request vorhanden → absolute URL generieren
             if request:
                 return request.build_absolute_uri(obj.thumbnail.url)
-            # Fallback: nur relativer Pfad
             return f"{settings.MEDIA_URL}{obj.thumbnail.name}"
         return None

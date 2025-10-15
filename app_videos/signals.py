@@ -32,7 +32,7 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
 
     video_dir = Path(settings.MEDIA_ROOT) / f"video/{instance.pk}"
     if video_dir.exists() and video_dir.is_dir():
-        # shell utilities -> remove tree (=> delete folder video/<video.pk>)
+        # shutil / shell utilities -> remove tree (=> delete folder video/<video.pk>)
         shutil.rmtree(video_dir)
 
     if instance.thumbnail:

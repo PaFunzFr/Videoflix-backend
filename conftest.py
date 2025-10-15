@@ -1,6 +1,7 @@
 import pytest
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
+from app_videos.models import Video
 from django.contrib.auth import get_user_model
 from unittest.mock import patch
 
@@ -38,6 +39,16 @@ def test_user(db):
     )
     return user
 
+@pytest.fixture
+def test_video(db):
+    video = Video.objects.create(
+        title="Ohne Thumbnail",
+        description="Testbeschreibung",
+        video_file="dummy.mp4",
+        thumbnail=None,
+        category="Comedy"
+    )
+    return video
 
 @pytest.fixture
 def api_client():
