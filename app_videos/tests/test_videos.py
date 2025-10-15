@@ -38,7 +38,7 @@ def test_serve_hls_playlist_success(auth_client):
     assert response['Content-Type'] == 'application/vnd.apple.mpegurl'
 
 
-def test_video_post_save_signal_enqueues_tasks():
+def test_video_post_save_signal_enqueues_tasks(db):
     with patch("app_videos.signals.django_rq.get_queue") as mock_get_queue:
         mock_queue = mock_get_queue.return_value
         mock_queue.enqueue = Mock()
