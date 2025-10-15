@@ -2,6 +2,7 @@ import pytest
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
+from unittest.mock import patch
 
 User = get_user_model()
 
@@ -90,3 +91,14 @@ def auth_client_with_refresh(api_client, token_pair):
     """
     api_client.cookies["refresh_token"] = token_pair["refresh"]
     return api_client
+
+@pytest.fixture
+def mock_rq_enqueue():
+    called = {}
+
+    def fake_enqueue(func, *args, **kwargs):
+        called['called'] = True
+
+    with patch("django_rq.get_queue") as mock_get_queue:
+        mock_get_queue.return_value.enqueue = fake_enqueue
+        yield called 
