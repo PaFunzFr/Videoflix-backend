@@ -3,6 +3,13 @@ from django.conf import settings
 from app_videos.models import Video
 
 class VideoListSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing video instances with relevant metadata.
+
+    Methods:
+        get_thumbnail_url(obj):
+            Constructs the absolute URL for the video's thumbnail, considering the request context.
+    """
     thumbnail_url = serializers.SerializerMethodField()
     class Meta:
         model = Video
@@ -10,7 +17,7 @@ class VideoListSerializer(serializers.ModelSerializer):
 
     def get_thumbnail_url(self, obj):
         request = self.context.get('request')
-        
+
         if obj.thumbnail and hasattr(obj.thumbnail, 'url'):
             if request:
                 return request.build_absolute_uri(obj.thumbnail.url)

@@ -25,6 +25,25 @@ CATEGORY_CHOICES = [
 ]
 
 class Video(models.Model):
+    """
+    Database model representing a video entity.
+
+    Attributes:
+        title (CharField): The title of the video, max length 80 characters.
+        description (CharField): A brief description or summary of the video, max length 500 characters.
+        thumbnail (ImageField): Optional image representing a thumbnail for the video,
+                                stored under 'thumbnail/tmp/', can be null or blank.
+        video_file (FileField): Optional uploaded video media file,
+                                stored under 'video/tmp/', can be null or blank.
+        category (CharField): Required categorical classification of the video,
+                              restricted to predefined CATEGORY_CHOICES.
+        created_at (DateTimeField): Timestamp showing when the video record was created,
+                                   automatically set on record insertion.
+
+    Methods:
+        __str__: Returns a concise string representation including primary key, title,
+                  description fallback, category, and upload datetime formatted as 'YYYY-MM-DD HH:mm'.
+    """
     title = models.CharField(max_length=80)
     description = models.CharField(max_length=500)
     thumbnail = models.ImageField(upload_to="thumbnail/tmp/", blank=True, null=True)
