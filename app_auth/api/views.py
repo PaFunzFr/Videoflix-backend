@@ -90,7 +90,14 @@ class ActivateView(APIView):
         user.is_active = True
         user.save()
 
-        django_rq.get_queue('default').enqueue(send_welcome_email, user.email)
+        django_rq.get_queue('default').enqueue(
+            send_user_email,
+            user,
+            subject="Welcome to Videoflix",
+            template_name="welcome_message",
+            link_name="",
+            link_value=""
+        )
 
         return Response(
             {"message": "Account successfully activated."},

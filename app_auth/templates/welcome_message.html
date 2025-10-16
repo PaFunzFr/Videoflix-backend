@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Welcome to Videoflix</title>
+</head>
+<body style="font-family: Arial, sans-serif; background: #181828; color: #fff; margin: 0; padding: 0;">
+    <div style="max-width: 600px; margin: 40px auto; background: #23234a; padding: 40px; border-radius: 12px; box-shadow: 0 2px 6px #0003;">
+        <div style="text-align: center;">
+            <img src="cid:{{ logo_cid }}" alt="Videoflix Logo" style="height: 76px; margin-bottom: 20px;" />
+        </div>
+        <h2 style="color: #fff; text-align: center;">Welcome to Videoflix</h2>
+        <p style="color: #ddd;">
+            Dear {{ user }},
+            <br><br>
+            Welcome to <a href="{{ site_url }}" style="color: #7367f0; text-decoration:none;">Videoflix</a>!<br>
+            Your account has been successfully activated, and you’re all set to start streaming your favorite movies and shows.
+        </p>
+        <br>
+        <p style="color: #ddd;">
+            We’re thrilled to have you on board. Sit back, relax, and enjoy the show!
+        </p>
+        <p style="color: #aaa;">
+            Happy streaming,<br>
+            Your Videoflix Team.
+        </p>
+    </div>
+</body>
+</html>

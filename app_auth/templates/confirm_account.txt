@@ -10,5 +10,4 @@ Activate account: {{ activation_url }}
 If you did not create an account with us, please disregard this email.
 
 Best regards,
-
 Your Videoflix Team

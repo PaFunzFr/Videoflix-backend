@@ -1,0 +1,11 @@
+Welcome to Videoflix
+
+Dear {{ user }},
+
+Welcome to Videoflix</a>! Your account has been successfully activated,
+and you’re all set to start streaming your favorite movies and shows.
+
+We’re thrilled to have you on board. Sit back, relax, and enjoy the show!
+
+Happy Streaming,
+Your Videoflix Team
