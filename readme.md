@@ -1,4 +1,4 @@
-![Videoflix Logo](app_auth/log/logo_icon.png)
+![Videoflix Logo](app_auth/logo/app_auth/logo_icon.png)
 
 # Backend Project Videoflix - Netflix clone
 
