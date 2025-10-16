@@ -68,7 +68,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'django_rq',
     'app_auth',
-    'app_videos.apps.AppVideosConfig'
+    'app_videos.apps.AppVideosConfig',
+    'drf_spectacular'
 ]
 
 MIDDLEWARE = [
@@ -198,8 +199,8 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 
 
 REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        #"rest_framework.authentication.SessionAuthentication",
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }

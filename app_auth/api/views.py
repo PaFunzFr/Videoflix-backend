@@ -1,39 +1,44 @@
 import os
-import django_rq
-from rest_framework import exceptions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth import get_user_model
+from .utils import queue_send_confirm_mail, queue_send_reset_mail, queue_send_welcome_mail
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
-from django.contrib.auth import get_user_model
-from .utils import send_user_email, send_welcome_email
-
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from rest_framework_simplejwt.authentication import JWTAuthentication
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 from dotenv import load_dotenv
 load_dotenv()
 
 User = get_user_model()
 
-from .serializers import RegisterSerializer, RequestPasswordResetSerializer, ConfirmPasswordSerializer, LoginSerializer
-
-class CookieJWTAuthentication(JWTAuthentication):
-    def authenticate(self, request):
-        access_token = request.COOKIES.get("access_token")
-        if not access_token:
-            return None  # no Token => not authenticated
-        try:
-            validated_token = self.get_validated_token(access_token)
-            return self.get_user(validated_token), validated_token
-        except Exception:
-            raise exceptions.AuthenticationFailed("Invalid token")
+from .authentications import CookieJWTAuthentication
+from .serializers import (
+    RegisterSerializer,
+    RequestPasswordResetSerializer,
+    ConfirmPasswordSerializer,
+    LoginSerializer
+)
 
 
+@extend_schema(
+    description="Register a new user account and send an email confirmation link.",
+    request=RegisterSerializer,
+    responses={
+        201: OpenApiResponse(description="User created successfully."),
+        400: OpenApiResponse(description="Invalid registration data."),
+    },
+)
 class RegisterView(APIView):
+    """
+    API endpoint for user registration.
+    After successful registration, a confirmation email is sent to the user.
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -46,14 +51,7 @@ class RegisterView(APIView):
             frontend_url = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5500')
             activation_link = f"{frontend_url}/pages/auth/activate.html?uid={uid}&token={token}"
 
-            django_rq.get_queue('default').enqueue(
-                send_user_email,
-                user,
-                subject="Confirm your account",
-                template_name="confirm_account",
-                link_name="activation_link",
-                link_value=activation_link
-            )
+            queue_send_confirm_mail(user, activation_link)
 
             return Response(
                 {"user": {"id": user.pk, "email": user.email}, "token": token},
@@ -62,7 +60,18 @@ class RegisterView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    description="Activate a user account using a token received via email.",
+    responses={
+        200: OpenApiResponse(description="Account activated successfully."),
+        400: OpenApiResponse(description="Invalid or expired activation token."),
+    },
+)
 class ActivateView(APIView):
+    """
+    API endpoint for account activation via an emailed token.
+    """
+
     permission_classes = [AllowAny]
 
     def get(self, request, uidb64, token):
@@ -90,14 +99,7 @@ class ActivateView(APIView):
         user.is_active = True
         user.save()
 
-        django_rq.get_queue('default').enqueue(
-            send_user_email,
-            user,
-            subject="Welcome to Videoflix",
-            template_name="welcome_message",
-            link_name="",
-            link_value=""
-        )
+        queue_send_welcome_mail(user)
 
         return Response(
             {"message": "Account successfully activated."},
@@ -105,65 +107,94 @@ class ActivateView(APIView):
         )
 
 
+@extend_schema(
+    description="Request a password reset link. A reset email will be sent if the email exists.",
+    request=RequestPasswordResetSerializer,
+    responses={
+        200: OpenApiResponse(description="Password reset email sent if account exists."),
+        400: OpenApiResponse(description="Invalid input data."),
+    },
+)
 class RequestPasswordResetView(APIView):
+    """
+    API endpoint for requesting a password reset link.
+    For security reasons, the response does not indicate whether the email exists or not.
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
         serializer = RequestPasswordResetSerializer(data=request.data)
-        if serializer.is_valid():
-            email = serializer.validated_data['email']
-            users = User.objects.filter(email=email, is_active=True) # only registered and active users
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+        users = User.objects.filter(email=email, is_active=True) # only registered and active users
 
-            # security check, no response weather user exists or not
-            for user in users:
-                uid = urlsafe_base64_encode(force_bytes(user.pk))
-                token = default_token_generator.make_token(user)
-                frontend_url = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5500')
-                password_reset_link = f"{frontend_url}/pages/auth/confirm_password.html?uid={uid}&token={token}"
+        # security check, no response weather user exists or not
+        for user in users:
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            frontend_url = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5500')
+            password_reset_link = f"{frontend_url}/pages/auth/confirm_password.html?uid={uid}&token={token}"
 
-                django_rq.get_queue('default').enqueue(
-                    send_user_email,
-                    user,
-                    subject="Reset your password",
-                    template_name="reset_password",
-                    link_name="password_reset_link",
-                    link_value=password_reset_link
-                )
+            queue_send_reset_mail(user, password_reset_link)
 
-            return Response(
-                {"detail": "If this email exists, a password reset link has been sent."},
-                status=status.HTTP_200_OK
-            )
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"detail": "If this email exists, a password reset link has been sent."},
+            status=status.HTTP_200_OK
+        )
 
 
+@extend_schema(
+    description="Confirm a password reset by providing a valid token and new password.",
+    request=ConfirmPasswordSerializer,
+    responses={
+        200: OpenApiResponse(description="Password successfully reset."),
+        400: OpenApiResponse(description="Invalid token or reset link."),
+    },
+)
 class ConfirmPasswordView(APIView):
+    """
+    API endpoint for confirming a password reset and setting a new password.
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request, uidb64, token):
         serializer = ConfirmPasswordSerializer(data=request.data)
-        if serializer.is_valid():
-            try:
-                uid = force_str(urlsafe_base64_decode(uidb64))
-                user = User.objects.get(pk=uid)
-            except Exception:
-                return Response({"error": "Invalid reset link."}, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
 
-            if not default_token_generator.check_token(user, token):
-                return Response({"error": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except Exception:
+            return Response({"error": "Invalid reset link."}, status=status.HTTP_400_BAD_REQUEST)
 
-            user.set_password(serializer.validated_data["new_password"])
-            user.save()
+        if not default_token_generator.check_token(user, token):
+            return Response({"error": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST)
 
-            return Response(
-                {"detail": "Your password has been successfully reset."},
-                status=status.HTTP_200_OK
-            )
+        user.set_password(serializer.validated_data["new_password"])
+        user.save()
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"detail": "Your password has been successfully reset."},
+            status=status.HTTP_200_OK
+        )
 
+
+@extend_schema(
+    description="Authenticate a user and set JWT tokens as secure cookies.",
+    request=LoginSerializer,
+    responses={
+        200: OpenApiResponse(description="Login successful. Tokens set in cookies."),
+        401: OpenApiResponse(description="Invalid credentials."),
+    },
+)
 class LoginView(TokenObtainPairView):
+    """
+    API endpoint for logging in a user.
+    Returns JWT access and refresh tokens as secure HTTP-only cookies.
+    """
+
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
 
@@ -208,7 +239,18 @@ class LoginView(TokenObtainPairView):
         return response
 
 
+@extend_schema(
+    description="Refresh the access token using a valid refresh token from cookies.",
+    responses={
+        200: OpenApiResponse(description="Access token refreshed successfully."),
+        401: OpenApiResponse(description="Missing or invalid refresh token."),
+    },
+)
 class CookieTokenRefreshView(TokenRefreshView):
+    """
+    API endpoint for refreshing the JWT access token using the refresh token stored in cookies.
+    """
+
     def post(self, request, *args, **kwargs):
         refresh_token = request.COOKIES.get("refresh_token")
 
@@ -248,7 +290,15 @@ class CookieTokenRefreshView(TokenRefreshView):
         return response
 
 
+@extend_schema(
+    description="Logout the user by deleting authentication cookies.",
+    responses={200: OpenApiResponse(description="User logged out successfully.")},
+)
 class LogoutView(APIView):
+    """
+    API endpoint for logging out a user by deleting their JWT cookies.
+    """
+    
     authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
