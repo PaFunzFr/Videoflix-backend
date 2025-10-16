@@ -9,6 +9,13 @@ User = get_user_model()
 
 @pytest.fixture
 def register_test_user():
+    """
+    Provides data for registering a test user.
+
+    Returns:
+        dict: A dictionary containing 'email' and 'password' keys with
+              sample user registration credentials.
+    """
     register_user = {
         "email":"register_user@email.com",
         "password":"Password123",
@@ -17,6 +24,15 @@ def register_test_user():
 
 @pytest.fixture
 def created_registered_test_user(db):
+    """
+    Creates and returns a registered user in the test database.
+
+    Args:
+        db: pytest-django database access fixture.
+
+    Returns:
+        User: A Django User model instance representing the registered user.
+    """
     register_test_user = User.objects.create_user(
         username="register-testuser",
         email="register_user@email.com",
@@ -41,6 +57,15 @@ def test_user(db):
 
 @pytest.fixture
 def test_video(db):
+    """
+    Creates and returns a Video instance without a thumbnail for testing purposes.
+
+    Args:
+        db: pytest-django database fixture for database access during tests.
+
+    Returns:
+        Video: An instance of the Video model with specified test data.
+    """
     video = Video.objects.create(
         title="Ohne Thumbnail",
         description="Testbeschreibung",
@@ -106,6 +131,15 @@ def auth_client_with_refresh(api_client, token_pair):
 
 @pytest.fixture
 def mock_rq_enqueue():
+    """
+    Mocks django_rq's queue enqueue method to track if tasks are enqueued.
+
+    This fixture replaces the 'enqueue' method with a simple callable that sets
+    a flag when called, allowing tests to verify if asynchronous jobs are triggered.
+
+    Yields:
+        dict: A dictionary with a 'called' key set to True upon enqueue invocation.
+    """
     called = {}
 
     def fake_enqueue(func, *args, **kwargs):
