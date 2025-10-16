@@ -69,9 +69,7 @@ backend-quizly/
 │   │   ├── permissions.py
 │   │   └── urls.py
 │   └── tests/
-│       ├── __init__.py
-│       ├── test_quizCreate.py
-│       └── test_quizzes.py
+│       └── test_videos.py
 │
 ├── media/
 │   └── temp/
