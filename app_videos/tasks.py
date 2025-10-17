@@ -39,28 +39,62 @@ def clean_up_video(video_id):
         video.save(update_fields=["video_file"])
 
 
-def move_video_thumbnail(video_id):
+def create_thumbnail(video_id):
     """
-    Moves the thumbnail of a video to a dedicated media directory with a unique filename.
+    Generates a thumbnail image for a given video using FFmpeg.
+
+    This function extracts a single frame (at the 5-second mark) from the video file
+    and saves it as a PNG image in the 'thumbnail' directory under MEDIA_ROOT.
+    The resulting thumbnail path is then stored in the corresponding Video model instance.
     """
     video = Video.objects.get(pk=video_id)
-    if not video.thumbnail:
-        return
-
-    src = Path(video.thumbnail.path)
+    src_video = Path(video.video_file.path)
     dest_dir = Path(settings.MEDIA_ROOT) / "thumbnail"
     dest_dir.mkdir(parents=True, exist_ok=True)
 
-    # unique file name: image<video_id>.<ext>
-    ext = src.suffix  # z.B. ".jpg"
-    dest = dest_dir / f"image{video_id}{ext}"
+    generated_thumb = dest_dir / f"image{video_id}.png"
 
-    # move file
-    src.rename(dest)
+    cmd = [
+        "ffmpeg",
+        "-ss", "5",                # Seek to 5 seconds
+        "-i", str(src_video),      # Input video file
+        "-frames:v", "1",          # Output one frame
+        "-q:v", "2",               # Quality setting
+        "-y",                      # Overwrite output file if it exists
+        str(generated_thumb)       # Output thumbnail path
+    ]
+    subprocess.run(cmd, capture_output=True, check=True)
 
-    # update model
-    video.thumbnail.name = str(dest.relative_to(settings.MEDIA_ROOT))
+    video.thumbnail.name = str(generated_thumb.relative_to(settings.MEDIA_ROOT))
     video.save(update_fields=['thumbnail'])
+
+
+def move_video_thumbnail(video_id):
+    """
+    Moves an existing video thumbnail to a dedicated media directory 
+    and ensures a consistent naming convention.
+
+    If the video has no thumbnail, a new one is generated using FFmpeg.
+    """
+    video = Video.objects.get(pk=video_id)
+    if not video.thumbnail:
+        create_thumbnail(video_id)
+        video.refresh_from_db()
+    else:
+        src = Path(video.thumbnail.path)
+        dest_dir = Path(settings.MEDIA_ROOT) / "thumbnail"
+        dest_dir.mkdir(parents=True, exist_ok=True)
+
+        # unique file name: image<video_id>.<ext>
+        ext = src.suffix  # z.B. ".jpg"
+        dest = dest_dir / f"image{video_id}{ext}"
+
+        # move file
+        src.rename(dest)
+
+        # update model
+        video.thumbnail.name = str(dest.relative_to(settings.MEDIA_ROOT))
+        video.save(update_fields=['thumbnail'])
 
 
 def convert_video_to_hls(video_id, name, scale, v_bitrate, a_bitrate):
@@ -120,5 +154,5 @@ def create_master_playlist(video_id):
         playlist_lines.append(f'#EXT-X-STREAM-INF:RESOLUTION={scale.replace(":", "x")}\n{name}/index.m3u8')
     master_path.write_text("\n".join(playlist_lines))
 
-    clean_up_video(video_id)
     move_video_thumbnail(video_id)
+    clean_up_video(video_id)
