@@ -132,7 +132,7 @@ Make sure to replace placeholders with your actual keys.
 ## Requirements
 
 - Python 3.13+
-- FFmpeg (für yt-dlp/Whisper)
+- FFmpeg (Video conversion and thumbnail generation, [FFmpeg Docs](https://ffmpeg.org/))
 - Docker ([install Docker](https://docs.docker.com/get-docker/))
 
 ---
