@@ -77,6 +77,12 @@ def test_serve_hls_playlist_success(auth_client):
       - the response is a Django FileResponse,
       - the content type is correct for an HLS playlist.
     """
+    video = Video.objects.create(
+        id=1,
+        title="Test Video",
+        video_file="dummy.mp4",
+        category="Test"
+    )
     url = "/api/video/1/480p/index.m3u8"
     response = auth_client.get(url)
     assert response.status_code == 200
