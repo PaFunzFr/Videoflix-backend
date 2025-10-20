@@ -29,13 +29,14 @@ jobs:
         ports: ["6379:6379"]
 
     env:
-      DB_NAME: videoflix
-      DB_USER: videoflix
-      DB_PASSWORD: videoflix
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       DB_HOST: 127.0.0.1
       REDIS_HOST: 127.0.0.1
       DJANGO_SETTINGS_MODULE: core.settings
       PYTHONPATH: /app
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
 
     steps:
       - name: Checkout code
