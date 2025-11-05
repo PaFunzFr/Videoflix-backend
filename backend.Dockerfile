@@ -20,5 +20,5 @@ RUN apk add --no-cache bash postgresql-client ffmpeg \
 
 EXPOSE 8000
 
-# add "sh" to run on macos
-ENTRYPOINT [ "sh", "./backend.entrypoint.sh" ] 
+
+ENTRYPOINT ["./backend.entrypoint.sh" ] 
