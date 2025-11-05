@@ -26,8 +26,6 @@ services:
       - .:/app
       - ./media:/app/media
       - videoflix_static:/app/static
-    ports:
-      - "8111:8000"
     environment:
       - PYTHONUNBUFFERED=1
     depends_on:
