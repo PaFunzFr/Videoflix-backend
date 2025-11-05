@@ -28,28 +28,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG")
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", default="localhost").split(",") #split creates list
-CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", default="http://localhost:4200").split(",")
+DEBUG = os.getenv('DEBUG', default=False, cast=bool)
+ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', default='localhost').split(',')]
+CSRF_TRUSTED_ORIGINS = [h.strip() for h in os.getenv('TRUSTED_ORIGINS', default='localhost').split(',')]
+CORS_ALLOWED_ORIGINS = [h.strip() for h in os.getenv('CORS_ALLOWED_ORIGINS', default='localhost').split(',')]
 
 
 RQ_SHOW_ADMIN_LINK = True
-
-
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:4200',
-    'http://127.0.0.1:4200',
-    'http://127.0.0.1:5500',
-    'http://127.0.0.1:5501',
-]
-
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:4200',
-    'http://127.0.0.1:4200',
-    'http://127.0.0.1:5500',
-    'http://127.0.0.1:5501',
-]
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -210,3 +196,8 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=400),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }  
+
+FILTERS_STRICTNESS = "raise"
+
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
