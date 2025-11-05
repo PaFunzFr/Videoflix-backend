@@ -19,6 +19,8 @@ import subprocess
 from django.conf import settings
 from pathlib import Path
 from .models import Video
+import time
+
 
 RESOLUTIONS = [
     ("480p", "854:480"),
@@ -49,6 +51,14 @@ def create_thumbnail(video_id):
     """
     video = Video.objects.get(pk=video_id)
     src_video = Path(video.video_file.path)
+
+    for _ in range(10):
+        if src_video.exists():
+            break
+        time.sleep(1)
+    else:
+        raise FileNotFoundError(f"{src_video} not found for thumbnail creation!")
+
     dest_dir = Path(settings.MEDIA_ROOT) / "thumbnail"
     dest_dir.mkdir(parents=True, exist_ok=True)
 
@@ -110,6 +120,13 @@ def convert_video_to_hls(video_id, name, scale, v_bitrate, a_bitrate):
     """
     video = Video.objects.get(pk=video_id)
     video_path = video.video_file.path
+
+    for _ in range(10):
+        if video_path.exists():
+            break
+        time.sleep(1)
+    else:
+        raise FileNotFoundError(f"{video_path} not found for video conversion!")
 
     output_dir = Path(f"media/video/{video_id}/{name}")
     output_dir.mkdir(parents=True, exist_ok=True)
