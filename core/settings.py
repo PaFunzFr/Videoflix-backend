@@ -30,9 +30,9 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 
 DEBUG = os.getenv('DEBUG', default=False)
-ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', default='localhost').split(',')]
-CSRF_TRUSTED_ORIGINS = [h.strip() for h in os.getenv('TRUSTED_ORIGINS', default='localhost').split(',')]
-CORS_ALLOWED_ORIGINS = [h.strip() for h in os.getenv('CORS_ALLOWED_ORIGINS', default='localhost').split(',')]
+ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "localhost").split(",") if h.strip()]
+CSRF_TRUSTED_ORIGINS = [h.strip() for h in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if h.strip()]
+CORS_ALLOWED_ORIGINS = [h.strip() for h in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if h.strip()]
 
 
 RQ_SHOW_ADMIN_LINK = True
