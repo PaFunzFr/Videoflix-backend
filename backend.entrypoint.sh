@@ -1,9 +1,11 @@
+
 #!/bin/sh
 
 # Exit the script immediately if any command fails (good for catching errors early)
-set -ex
+set -e
 
 echo "Waiting for PostgreSQL at $DB_HOST:$DB_PORT..."
+
 # -q means "quiet" (only output errors, no extra logs)
 # This loop keeps running as long as 'pg_isready' is NOT successful (exit code != 0).
 # => keep checking every second until the database is ready to accept connections.
@@ -25,8 +27,7 @@ python manage.py migrate
 # Automatically create a Django superuser if it doesn't exist yet.
 # The username, email, and password are read from environment variables.
 # This is useful for setting up an admin account in a fresh environment.
-echo "[entrypoint] Ensuring Django superuser exists"
-python manage.py shell <<'PYCODE'
+python manage.py shell <<EOF
 import os
 from django.contrib.auth import get_user_model
 
@@ -60,7 +61,7 @@ if not User.objects.filter(username=guest_username).exists():
     print(f"Guest user '{guest_username}' created.")
 else:
     print(f"Guest user '{guest_username}' already exists.")
-PYCODE
+EOF
 
 # Start a background worker (using django-rq)
 # '&' runs it in the background so the script can continue
@@ -71,5 +72,4 @@ python manage.py rqworker default &
 # - 0.0.0.0:8000 makes it reachable on all network interfaces
 # - --reload automatically restarts Gunicorn when code changes (good for development, 
 #   usually disabled in production for performance)
-echo "[entrypoint] Starting Gunicorn"
-exec gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 60
+exec gunicorn core.wsgi:application --bind 0.0.0.0:8000 --reload

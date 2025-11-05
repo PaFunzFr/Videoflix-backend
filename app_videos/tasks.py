@@ -19,7 +19,7 @@ import subprocess
 from django.conf import settings
 from pathlib import Path
 from .models import Video
-import time
+
 
 
 RESOLUTIONS = [
@@ -27,13 +27,6 @@ RESOLUTIONS = [
     ("720p", "1280:720"),
     ("1080p", "1920:1080"),
 ]
-
-def _wait_for_file(path: Path, tries: int = 20, delay: float = 0.5):
-    for _ in range(tries):
-        if path.exists():
-            return True
-        time.sleep(delay)
-    return False
 
 def clean_up_video(video_id):
     """
@@ -59,8 +52,12 @@ def create_thumbnail(video_id):
     video = Video.objects.get(pk=video_id)
     src_video = Path(video.video_file.path)
 
-    if not _wait_for_file(src_video):
-            raise FileNotFoundError(f"{src_video} not found for thumbnail creation!")
+
+
+
+
+
+
 
     dest_dir = Path(settings.MEDIA_ROOT) / "thumbnail"
     dest_dir.mkdir(parents=True, exist_ok=True)
@@ -122,10 +119,14 @@ def convert_video_to_hls(video_id, name, scale, v_bitrate, a_bitrate):
         a_bitrate (str): Target audio bitrate (e.g., '96k').
     """
     video = Video.objects.get(pk=video_id)
+    video_path = video.video_file.path
 
-    src_path = Path(video.video_file.path)
-    if not _wait_for_file(src_path):
-        raise FileNotFoundError(f"{src_path} not found for video conversion!")
+
+
+
+
+
+
 
     output_dir = Path(f"media/video/{video_id}/{name}")
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -135,7 +136,7 @@ def convert_video_to_hls(video_id, name, scale, v_bitrate, a_bitrate):
 
     cmd = [
         "ffmpeg", "-y",
-        "-i", src_path,
+        "-i", video_path,
         "-vf", f"scale={scale}",
         "-c:a", "aac", "-ar", "48000", "-b:a", a_bitrate,
         "-c:v", "h264", "-profile:v", "main", "-crf", "20",
@@ -160,8 +161,7 @@ def create_master_playlist(video_id):
     Args:
         video_id (int): Primary key of the Video object.
     """
-    video_dir = Path(settings.MEDIA_ROOT) / "video" / str(video_id)
-    video_dir.mkdir(parents=True, exist_ok=True)
+    video_dir = Path(f"media/video/{video_id}")
     master_path = video_dir / "master.m3u8"
 
     # Needed for format
@@ -169,7 +169,6 @@ def create_master_playlist(video_id):
 
     for name, scale in RESOLUTIONS:
         playlist_lines.append(f'#EXT-X-STREAM-INF:RESOLUTION={scale.replace(":", "x")}\n{name}/index.m3u8')
-
     master_path.write_text("\n".join(playlist_lines))
 
     move_video_thumbnail(video_id)
