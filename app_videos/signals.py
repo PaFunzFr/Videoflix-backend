@@ -20,6 +20,7 @@ from .tasks import convert_video_to_hls, create_master_playlist
 from .models import Video
 from django.dispatch import receiver
 from django.db.models.signals import post_save, post_delete
+from django.db import transaction
 
 
 VIDEO_FORMATS = [
@@ -39,13 +40,15 @@ def video_post_save(sender, instance, created, **kwargs):
     (480p, 720p, 1080p) and to create the master playlist.
     """
     if created and instance.video_file:
-        queue = django_rq.get_queue('default', autocommit=True)
+        def enqueue_tasks():
+            queue = django_rq.get_queue('default', autocommit=True)
 
-        queue.enqueue(convert_video_to_hls, instance.id, *VIDEO_FORMATS[0])  # 480p
-        queue.enqueue(convert_video_to_hls, instance.id, *VIDEO_FORMATS[1])  # 720p
-        queue.enqueue(convert_video_to_hls, instance.id, *VIDEO_FORMATS[2])  # 1080p
+            queue.enqueue(convert_video_to_hls, instance.id, *VIDEO_FORMATS[0])  # 480p
+            queue.enqueue(convert_video_to_hls, instance.id, *VIDEO_FORMATS[1])  # 720p
+            queue.enqueue(convert_video_to_hls, instance.id, *VIDEO_FORMATS[2])  # 1080p
 
-        queue.enqueue(create_master_playlist, instance.id)
+            queue.enqueue(create_master_playlist, instance.id)
+        transaction.on_commit(enqueue_tasks)
 
 
 @receiver(post_delete, sender=Video)

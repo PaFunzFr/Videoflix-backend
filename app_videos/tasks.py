@@ -162,6 +162,7 @@ def create_master_playlist(video_id):
         video_id (int): Primary key of the Video object.
     """
     video_dir = Path(f"media/video/{video_id}")
+    video_dir.mkdir(parents=True, exist_ok=True)
     master_path = video_dir / "master.m3u8"
 
     # Needed for format
