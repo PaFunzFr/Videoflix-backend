@@ -12,7 +12,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
-      retries: 5
+      timeout: 5s
+      retries: 30
+      start_period: 5s
 
   redis:
     image: redis:latest
