@@ -31,16 +31,35 @@ import os
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
+
+# Superuser config (from env)
 username = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
 email = os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@example.com')
 password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'adminpassword')
 
+# Guest user config (fixed name or env-based)
+guest_username = os.environ.get('DJANGO_GUEST_USERNAME', 'guest')
+guest_email = os.environ.get('DJANGO_GUEST_EMAIL', 'guest@videoflix.com')
+guest_password = os.environ.get('DJANGO_GUEST_PASSWORD', 'guestpassword')
+
+# --- Create Superuser ---
 if not User.objects.filter(username=username).exists():
     print(f"Creating superuser '{username}'...")
     User.objects.create_superuser(username=username, email=email, password=password)
     print(f"Superuser '{username}' created.")
 else:
     print(f"Superuser '{username}' already exists.")
+
+# --- Create Guest User ---
+if not User.objects.filter(username=guest_username).exists():
+    print(f"Creating guest user '{guest_username}'...")
+    guest_user = User.objects.create_user(username=guest_username, email='guest@videoflix.com', password=guest_password)
+    guest_user.is_staff = False
+    guest_user.is_superuser = False
+    guest_user.save()
+    print(f"Guest user '{guest_username}' created.")
+else:
+    print(f"Guest user '{guest_username}' already exists.")
 EOF
 
 # Start a background worker (using django-rq)
