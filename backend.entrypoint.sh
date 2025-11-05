@@ -4,7 +4,6 @@
 set -e
 
 echo "Waiting for PostgreSQL at $DB_HOST:$DB_PORT..."
-
 # -q means "quiet" (only output errors, no extra logs)
 # This loop keeps running as long as 'pg_isready' is NOT successful (exit code != 0).
 # => keep checking every second until the database is ready to accept connections.
@@ -26,7 +25,7 @@ python manage.py migrate
 # Automatically create a Django superuser if it doesn't exist yet.
 # The username, email, and password are read from environment variables.
 # This is useful for setting up an admin account in a fresh environment.
-python manage.py shell <<EOF
+python manage.py shell -c "
 import os
 from django.contrib.auth import get_user_model
 
@@ -60,7 +59,7 @@ if not User.objects.filter(username=guest_username).exists():
     print(f"Guest user '{guest_username}' created.")
 else:
     print(f"Guest user '{guest_username}' already exists.")
-EOF
+"
 
 # Start a background worker (using django-rq)
 # '&' runs it in the background so the script can continue
