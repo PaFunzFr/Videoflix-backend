@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Exit the script immediately if any command fails (good for catching errors early)
-set -e
+set -ex
 
 echo "Waiting for PostgreSQL at $DB_HOST:$DB_PORT..."
 # -q means "quiet" (only output errors, no extra logs)
@@ -25,7 +25,8 @@ python manage.py migrate
 # Automatically create a Django superuser if it doesn't exist yet.
 # The username, email, and password are read from environment variables.
 # This is useful for setting up an admin account in a fresh environment.
-python manage.py shell -c "
+echo "[entrypoint] Ensuring Django superuser & guest exists"
+python manage.py shell <<'PYCODE'
 import os
 from django.contrib.auth import get_user_model
 
@@ -59,7 +60,7 @@ if not User.objects.filter(username=guest_username).exists():
     print(f"Guest user '{guest_username}' created.")
 else:
     print(f"Guest user '{guest_username}' already exists.")
-"
+PYCODE
 
 # Start a background worker (using django-rq)
 # '&' runs it in the background so the script can continue
