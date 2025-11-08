@@ -52,13 +52,6 @@ def create_thumbnail(video_id):
     video = Video.objects.get(pk=video_id)
     src_video = Path(video.video_file.path)
 
-
-
-
-
-
-
-
     dest_dir = Path(settings.MEDIA_ROOT) / "thumbnail"
     dest_dir.mkdir(parents=True, exist_ok=True)
 
@@ -90,21 +83,21 @@ def move_video_thumbnail(video_id):
     if not video.thumbnail:
         create_thumbnail(video_id)
         video.refresh_from_db()
-    else:
-        src = Path(video.thumbnail.path)
-        dest_dir = Path(settings.MEDIA_ROOT) / "thumbnail"
-        dest_dir.mkdir(parents=True, exist_ok=True)
+        
+    src = Path(video.thumbnail.path)
+    dest_dir = Path(settings.MEDIA_ROOT) / "thumbnail"
+    dest_dir.mkdir(parents=True, exist_ok=True)
 
-        # unique file name: image<video_id>.<ext>
-        ext = src.suffix  # z.B. ".jpg"
-        dest = dest_dir / f"image{video_id}{ext}"
+    # unique file name: image<video_id>.<ext>
+    ext = src.suffix  # e.g. ".jpg"
+    dest = dest_dir / f"image{video_id}{ext}"
 
-        # move file
-        src.rename(dest)
+    # move file
+    src.rename(dest)
 
-        # update model
-        video.thumbnail.name = str(dest.relative_to(settings.MEDIA_ROOT))
-        video.save(update_fields=['thumbnail'])
+    # update model
+    video.thumbnail.name = str(dest.relative_to(settings.MEDIA_ROOT))
+    video.save(update_fields=['thumbnail'])
 
 
 def convert_video_to_hls(video_id, name, scale, v_bitrate, a_bitrate):
@@ -120,13 +113,6 @@ def convert_video_to_hls(video_id, name, scale, v_bitrate, a_bitrate):
     """
     video = Video.objects.get(pk=video_id)
     video_path = video.video_file.path
-
-
-
-
-
-
-
 
     output_dir = Path(f"media/video/{video_id}/{name}")
     output_dir.mkdir(parents=True, exist_ok=True)

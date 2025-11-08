@@ -16,7 +16,7 @@ import shutil
 from pathlib import Path
 from django.conf import settings
 import django_rq
-from .tasks import convert_video_to_hls, create_master_playlist
+from .tasks import convert_video_to_hls, create_master_playlist, create_thumbnail
 from .models import Video
 from django.dispatch import receiver
 from django.db.models.signals import post_save, post_delete
@@ -42,6 +42,9 @@ def video_post_save(sender, instance, created, **kwargs):
     if created and instance.video_file:
         def enqueue_tasks():
             queue = django_rq.get_queue('default', autocommit=True)
+
+            if not instance.thumbnail:
+                queue.enqueue(create_thumbnail, instance.id)
 
             queue.enqueue(convert_video_to_hls, instance.id, *VIDEO_FORMATS[0])  # 480p
             queue.enqueue(convert_video_to_hls, instance.id, *VIDEO_FORMATS[1])  # 720p
