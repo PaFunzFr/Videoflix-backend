@@ -76,23 +76,28 @@ def move_video_thumbnail(video_id):
     """
     Moves an existing video thumbnail to a dedicated media directory 
     and ensures a consistent naming convention.
+
+    If the video has no thumbnail, a new one is generated using FFmpeg.
     """
     video = Video.objects.get(pk=video_id)
-        
-    src = Path(video.thumbnail.path)
-    dest_dir = Path(settings.MEDIA_ROOT) / "thumbnail"
-    dest_dir.mkdir(parents=True, exist_ok=True)
+    if not video.thumbnail:
+        create_thumbnail(video_id)
+        video.refresh_from_db()
+    else:
+        src = Path(video.thumbnail.path)
+        dest_dir = Path(settings.MEDIA_ROOT) / "thumbnail"
+        dest_dir.mkdir(parents=True, exist_ok=True)
 
-    # unique file name: image<video_id>.<ext>
-    ext = src.suffix  # e.g. ".jpg"
-    dest = dest_dir / f"image{video_id}{ext}"
+        # unique file name: image<video_id>.<ext>
+        ext = src.suffix  # z.B. ".jpg"
+        dest = dest_dir / f"image{video_id}{ext}"
 
-    # move file
-    src.rename(dest)
+        # move file
+        src.rename(dest)
 
-    # update model
-    video.thumbnail.name = str(dest.relative_to(settings.MEDIA_ROOT))
-    video.save(update_fields=['thumbnail'])
+        # update model
+        video.thumbnail.name = str(dest.relative_to(settings.MEDIA_ROOT))
+        video.save(update_fields=['thumbnail'])
 
 
 def convert_video_to_hls(video_id, name, scale, v_bitrate, a_bitrate):
