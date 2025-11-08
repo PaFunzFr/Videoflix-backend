@@ -21,7 +21,6 @@ from pathlib import Path
 from .models import Video
 
 
-
 RESOLUTIONS = [
     ("480p", "854:480"),
     ("720p", "1280:720"),
