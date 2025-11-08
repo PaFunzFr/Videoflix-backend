@@ -43,14 +43,17 @@ def video_post_save(sender, instance, created, **kwargs):
         def enqueue_tasks():
             queue = django_rq.get_queue('default', autocommit=True)
 
-            if not instance.thumbnail:
-                queue.enqueue(create_thumbnail, instance.id)
-
             queue.enqueue(convert_video_to_hls, instance.id, *VIDEO_FORMATS[0])  # 480p
             queue.enqueue(convert_video_to_hls, instance.id, *VIDEO_FORMATS[1])  # 720p
             queue.enqueue(convert_video_to_hls, instance.id, *VIDEO_FORMATS[2])  # 1080p
 
+            if not instance.thumbnail:
+                queue.enqueue(create_thumbnail, instance.id)
+                
             queue.enqueue(create_master_playlist, instance.id)
+
+
+
         transaction.on_commit(enqueue_tasks)
 
 
