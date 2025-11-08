@@ -76,13 +76,8 @@ def move_video_thumbnail(video_id):
     """
     Moves an existing video thumbnail to a dedicated media directory 
     and ensures a consistent naming convention.
-
-    If the video has no thumbnail, a new one is generated using FFmpeg.
     """
     video = Video.objects.get(pk=video_id)
-    if not video.thumbnail:
-        create_thumbnail(video_id)
-        video.refresh_from_db()
         
     src = Path(video.thumbnail.path)
     dest_dir = Path(settings.MEDIA_ROOT) / "thumbnail"
