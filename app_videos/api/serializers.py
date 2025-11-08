@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.conf import settings
 from app_videos.models import Video
+from rest_framework.reverse import reverse
 
 class VideoListSerializer(serializers.ModelSerializer):
     """
@@ -16,10 +17,5 @@ class VideoListSerializer(serializers.ModelSerializer):
         fields = ['id', 'created_at', 'title', 'description', 'thumbnail_url', 'category']
 
     def get_thumbnail_url(self, obj):
-        request = self.context.get('request')
-
-        if obj.thumbnail and hasattr(obj.thumbnail, 'url'):
-            if request:
-                return request.build_absolute_uri(obj.thumbnail.url)
-            return f"{settings.MEDIA_URL}{obj.thumbnail.name}"
-        return None
+        request = self.context.get("request")
+        return reverse("video-thumbnail", args=[obj.pk], request=request)

@@ -100,3 +100,25 @@ class ServeHLSSegmentView(APIView):
         if not file_path.exists():
             raise Http404("Segment not found.")
         return FileResponse(open(file_path, 'rb'), content_type='video/mp2t')
+
+
+class ServeThumbnailView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk: int):
+        try:
+            video = Video.objects.get(pk=pk)
+        except Video.DoesNotExist:
+            raise Http404("Video not found")
+
+        if not video.thumbnail:
+            raise Http404("Thumbnail not available")
+
+        path = Path(video.thumbnail.path)
+        if not path.exists():
+            raise Http404("Thumbnail file missing")
+
+        # content type
+        ctype = "image/png" if path.suffix.lower() == ".png" else "image/jpeg"
+        return FileResponse(open(path, "rb"), content_type=ctype)
