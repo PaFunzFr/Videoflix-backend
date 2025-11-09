@@ -17,5 +17,7 @@ class VideoListSerializer(serializers.ModelSerializer):
         fields = ['id', 'created_at', 'title', 'description', 'thumbnail_url', 'category']
 
     def get_thumbnail_url(self, obj):
+        if not obj.thumbnail:
+            return None
         request = self.context.get("request")
         return reverse("video-thumbnail", args=[obj.pk], request=request)

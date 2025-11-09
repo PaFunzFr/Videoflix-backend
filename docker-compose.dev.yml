@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: videoflix_database
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: videoflix_redis
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+
+  web:
+    build:
+      context: .
+      dockerfile: backend.Dockerfile
+    container_name: videoflix_backend
+    environment:
+      PYTHONUNBUFFERED: "1"
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./media:/app/media
+      - ./static:/app/static
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: backend.Dockerfile
+    container_name: django_worker
+    command: python manage.py rqworker default
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_started
+    volumes:
+      - ./media:/app/media
+    restart: unless-stopped
+
+  test:
+    build:       
+      context: .
+      dockerfile: backend.Dockerfile
+    entrypoint: "" #do not run entrypoint.sh
+    command: pytest --cov=. --cov-report=term-missing
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+    env_file: .env
+
+volumes:
+  media_data:
+  videoflix_static:
+  postgres_data:
+  redis_data:

@@ -163,14 +163,14 @@ pip install -r requirements.txt
 
 Make sure Docker Desktop (or your Docker application) is running.
 
-To build the images and start the containers for the first time:
+To build the images (DEV MODE) and start the containers for the first time:
 ```
-docker-compose up --build
+docker-compose -f docker-compose.dev.yml up --build
 ```
 
 To start the containers without rebuilding (useful after the first build):
 ```
-docker-compose up
+docker-compose -f docker-compose.dev.yml up
 ```
 
 The backend will be exposed on http://localhost:8000.
@@ -196,10 +196,10 @@ Tests are written using pytest and pytest-django.
 # Run all tests
 Start your docker container
 ```
-docker-compose up
+docker-compose -f docker-compose.dev.yml up
 ```
 ```
-docker-compose run --rm test  
+docker-compose -f docker-compose.dev.yml run --rm test  
 ```
 
 ---

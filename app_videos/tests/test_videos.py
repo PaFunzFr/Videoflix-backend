@@ -20,6 +20,7 @@ from app_videos.models import Video
 from django.urls import reverse
 from django.http import FileResponse
 from unittest.mock import Mock, patch
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 User = get_user_model()
 
@@ -90,6 +91,20 @@ def test_serve_hls_playlist_success(auth_client):
     assert response['Content-Type'] == 'application/vnd.apple.mpegurl'
 
 
+def run_on_commit_immediately(func):
+    """
+    Executes the given function immediately instead of deferring it with `transaction.on_commit`.
+
+    This helper is typically used in tests to run Django signal handlers or RQ tasks 
+    that are normally registered via `transaction.on_commit` directly and synchronously, 
+    without waiting for the database transaction to complete.
+
+    Args:
+        func (Callable): The function to execute immediately.
+    """
+    func()
+
+
 def test_video_post_save_signal_enqueues_tasks(db):
     """
     Ensures the Video post_save signal enqueues conversion/master tasks.
@@ -97,16 +112,20 @@ def test_video_post_save_signal_enqueues_tasks(db):
     This test mocks the RQ queue and creates a new Video instance with a video_file,
     then verifies that the signal handler enqueues 4 tasks:
         - 3 for HLS conversion (480p, 720p, 1080p)
+        - 1 for thumbnail creation
         - 1 for master playlist creation
     """
-    with patch("app_videos.signals.django_rq.get_queue") as mock_get_queue:
+    with patch("django_rq.get_queue") as mock_get_queue:
         mock_queue = mock_get_queue.return_value
         mock_queue.enqueue = Mock()
 
-        video = Video.objects.create(
-            title="Test Video",
-            video_file="dummy.mp4",
-            category="Test"
-        )
+        # Patch transaction.on_commit
+        with patch("django.db.transaction.on_commit", side_effect=run_on_commit_immediately):
+
+            video = Video.objects.create(
+                title="Test Video",
+                video_file=SimpleUploadedFile("dummy.mp4", b"dummy content"), # Dummy File
+                category="Test"
+            )
         
-        assert mock_queue.enqueue.call_count == 4
+        assert mock_queue.enqueue.call_count == 5

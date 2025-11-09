@@ -72,5 +72,21 @@ python manage.py rqworker default &
 # - 0.0.0.0:8000 makes it reachable on all network interfaces
 # - --reload automatically restarts Gunicorn when code changes (good for development, 
 #   usually disabled in production for performance)
-gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3 --worker-class gthread --threads 4 --timeout 2000
-
+if [ "$DEBUG" = "True" ]; then
+    echo "Starting Gunicorn with reload (DEBUG mode)..."
+    exec gunicorn core.wsgi:application \
+        --bind 0.0.0.0:8000 \
+        --reload \
+        --workers 2 \
+        --worker-class gthread \
+        --threads 2 \
+        --timeout 2000
+else
+    echo "Starting Gunicorn (production)..."
+    exec gunicorn core.wsgi:application \
+        --bind 0.0.0.0:8000 \
+        --workers 3 \
+        --worker-class gthread \
+        --threads 4 \
+        --timeout 2000
+fi
