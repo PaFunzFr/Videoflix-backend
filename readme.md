@@ -23,7 +23,7 @@ This repository hosts the backend of the application, developed using Django and
 ## Project Structure
 
 ```
-backend-quizly/
+backend-videoflix/
 │
 ├── core/
 │   ├── __init__.py
@@ -211,9 +211,9 @@ Swagger/OpenAPI documentation is automatically generated using drf-spectacular.
 
 Once the server is running, you can access it at:
 
-http://localhost:8000/schema/
-http://localhost:8000/swagger/
-http://localhost:8000/redoc/
+- http://localhost:8000/schema/
+- http://localhost:8000/swagger/
+- http://localhost:8000/redoc/
 
 ---
 
