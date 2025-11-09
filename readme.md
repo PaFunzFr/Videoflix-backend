@@ -80,6 +80,7 @@ backend-quizly/
 ├── backend.entrypoint.sh
 ├── conftest.py
 ├── docker-compose.yml
+├── docker-compose.dev.yml
 ├── requirements.txt
 ├── manage.py                    
 ├── pytest.ini
